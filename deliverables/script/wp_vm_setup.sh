@@ -64,8 +64,8 @@ VBoxManage modifyvm ${vm_name}\
 VBoxManage startvm ${vm_name} --type gui
 
 ssh pxe 'sudo chown -R admin:wheel /usr/share/nginx'
-scp /Users/MinSuSong/ACIT4640/deliverables/scripts/wp_ks.cfg root@pxe:/usr/share/nginx/html
-scp -r /Users/MinSuSong/ACIT4640/deliverables/scripts/ova_test.sh root@pxe:/usr/share/nginx/html
+scp /Users/MinSuSong/ACIT4640/deliverables/kickstart/wp_ks.cfg pxe:/usr/share/nginx/html/
+scp -r /Users/MinSuSong/ACIT4640/setup root@pxe:/usr/share/nginx/html
 ssh pxe 'sudo chown -R nginx:wheel /usr/share/nginx'
 ssh pxe 'sudo chown nginx:wheel /usr/share/nginx/html/wp_ks.cfg'
 ssh pxe 'chmod ugo+r /usr/share/nginx/html/wp_ks.cfg'
