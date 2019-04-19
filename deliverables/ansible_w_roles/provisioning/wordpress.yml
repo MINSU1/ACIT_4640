@@ -1,0 +1,144 @@
+---
+- hosts: wp
+  become: yes
+  tasks:
+
+    - name: epel-release
+      yum:
+        name: epel-release
+        state: latest
+
+    - name: upgrade all packages
+      yum: 
+        name: '*'
+        state: latest
+
+    ##Firewall Settings
+    - firewalld:
+        service: https
+        permanent: yes
+        state: enabled
+        immediate: yes
+
+    - firewalld:
+        service: http
+        permanent: yes
+        state: enabled
+        immediate: yes
+
+    - name: install rsync
+      yum:
+        name: rsync
+        state: latest
+
+    #nginx install, copy, and restart
+
+    - name: install nginx
+      yum:
+        name: nginx
+        state: latest
+
+    
+
+    - name: example copying nginx.conf to destination
+      copy:
+        src: ./wp_setup_files/nginx.conf
+        dest: /etc/nginx/nginx.conf
+        owner: admin
+        group: admin
+
+    - name: Restart service nginx, in all cases
+      service:
+        name: nginx
+        state: restarted
+
+    #PHP and php-fpm
+
+    - name: install php
+      yum:
+        name: php
+        state: latest
+
+    - name: install php-fpm
+      package:
+        name: php-fpm
+        state: latest
+
+    - name: install php-mysql
+      yum:
+        name: php-mysql
+        state: latest
+
+
+    - name: example copying php.ini to destination
+      copy:
+        src: ./wp_setup_files/php.ini
+        dest: /etc/php.ini
+        owner: admin
+        group: admin
+        
+    - name: example copying www.conf to destination
+      copy:
+        src: ./wp_setup_files/www.conf
+        dest: /etc/php-fpm.d/www.conf
+        owner: admin
+        group: admin
+
+
+    - name: Restart service php-fpm, in all cases
+      service:
+        name: php-fpm
+        state: restarted
+
+    - name: install mariadb
+      yum:
+        name: mariadb
+        state: latest
+    
+    - name: install mariadb server
+      yum:
+        name: mariadb-server
+        state: latest
+
+    - name: copy mariadb config sql
+      copy:
+        src: ./wp_setup_files/wp_mariadb_config.sql
+        dest: /home/admin/wp_mariadb_config.sql
+
+    - name: copy mariadb config sql
+      copy:
+        src: ./wp_setup_files/mariadb_security_config.sql
+        dest: /home/admin/mariadb_security_config.sql
+        
+
+    - name: Run MariaDb script with arguments
+      script: ./wp_setup_files/wp_mariadb_config.sh
+
+    - name: Download Wordpresss
+      get_url:
+        url: https://wordpress.org/latest.tar.gz
+        dest: /home/admin
+        mode: 0440
+
+    - name: Unarchive a wordpress file
+      unarchive:
+        src: /home/admin/wordpress-5.1.1.tar.gz
+        dest: /home/admin
+        remote_src: yes
+
+    - name: example copying wp-config.php to wordpress
+      copy:
+        src: ./wp_setup_files/wp-config.php
+        dest: /home/admin/wordpress/wp-config.php
+    
+
+    - name: example copying wordpress to /usr/share/nginx/html/
+      command: rsync -avP /home/admin/wordpress/ /usr/share/nginx/html/
+      
+    - file:
+        dest: /usr/share/nginx/html/
+        owner: admin
+        group: nginx
+        recurse: yes
+        mode: 0755
+...
